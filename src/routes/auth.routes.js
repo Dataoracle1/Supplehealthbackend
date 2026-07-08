@@ -1,32 +1,3 @@
-// const express = require('express');
-// const {
-//   register,
-//   login,
-//   getMe,
-//   verifyEmail,
-//   resendVerificationEmail,
-//   forgotPassword,      
-//   resetPassword        
-// } = require('../controllers/auth.controller');
-// const { protect } = require('../middleware/auth.middleware');
-
-// const router = express.Router();
-
-// router.post('/register', register);
-// router.post('/login', login);
-// router.get('/me', protect, getMe);
-// router.get('/verify-email/:token', verifyEmail);
-// router.post('/resend-verification', resendVerificationEmail);
-// router.post('/forgot-password', forgotPassword);       
-// router.post('/reset-password/:token', resetPassword);  
-// module.exports = router;
-
-
-
-
-
-
-
 
 const express = require('express');
 const rateLimit = require('express-rate-limit');
@@ -34,12 +5,15 @@ const {
   register,
   login,
   getMe,
+  updateProfile,
+  changePassword,
   verifyEmail,
   resendVerificationEmail,
   forgotPassword,
   resetPassword
 } = require('../controllers/auth.controller');
 const { protect } = require('../middleware/auth.middleware');
+const { validateProfileUpdate, validatePasswordChange } = require('../utils/validators');
 
 const router = express.Router();
 
@@ -98,6 +72,8 @@ const resendVerificationLimiter = rateLimit({
 router.post('/register', registerLimiter, register);
 router.post('/login', loginLimiter, login);
 router.get('/me', protect, getMe);
+router.put('/profile', protect, validateProfileUpdate, updateProfile);
+router.put('/change-password', protect, validatePasswordChange, changePassword);
 router.get('/verify-email/:token', verifyEmail);
 router.post('/resend-verification', resendVerificationLimiter, resendVerificationEmail);
 router.post('/forgot-password', forgotPasswordLimiter, forgotPassword);

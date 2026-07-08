@@ -1,6 +1,3 @@
-
-
-
 const mongoose = require('mongoose');
 
 // ─── Slug Helper ───────────────────────────────────────────────────────────────
@@ -93,6 +90,13 @@ const productSchema = new mongoose.Schema({
     average: { type: Number, default: 0, min: 0, max: 5 },
     count: { type: Number, default: 0, min: 0 }
   },
+  reviews: [{
+    user:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    name:      { type: String, required: true }, // snapshot in case user is deleted later
+    rating:    { type: Number, required: true, min: 1, max: 5 },
+    comment:   { type: String, required: true, trim: true, maxlength: 500 },
+    createdAt: { type: Date, default: Date.now }
+  }],
   tags: [String],
   brand: String,
   weight: String,
