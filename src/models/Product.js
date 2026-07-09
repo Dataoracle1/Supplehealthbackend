@@ -86,6 +86,7 @@ const productSchema = new mongoose.Schema({
   warnings: String,
   isActive: { type: Boolean, default: true },
   isFeatured: { type: Boolean, default: false },
+  lowStockAlertSent: { type: Boolean, default: false },
   rating: {
     average: { type: Number, default: 0, min: 0, max: 5 },
     count: { type: Number, default: 0, min: 0 }
@@ -152,7 +153,42 @@ productSchema.pre('save', async function(next) {
     this.slug = slug;
   }
 
+  // Track whether stock is crossing the low-stock threshold on this save,
+  // so the post-save hook below knows whether to fire an alert.
+  const LOW_STOCK_THRESHOLD = 10;
+  if (this.isModified('stock')) {
+    this._crossedIntoLowStock = this.stock <= LOW_STOCK_THRESHOLD && this.stock > 0 && !this.lowStockAlertSent;
+    // Stock replenished above threshold — reset so a future dip alerts again
+    if (this.stock > LOW_STOCK_THRESHOLD && this.lowStockAlertSent) {
+      this.lowStockAlertSent = false;
+    }
+  }
+
   next();
+});
+
+// Fire a one-time admin alert when a product's stock first crosses below
+// the low-stock threshold. Resets automatically once restocked (see above),
+// so a repeat dip will alert again.
+productSchema.post('save', async function(doc) {
+  if (doc._crossedIntoLowStock) {
+    try {
+      const transporter = require('../config/emailConfig');
+      const { getLowStockAlertTemplate } = require('../utils/emailTemplates');
+
+      await transporter.sendMail({
+        from: `"SuppleHealth" <${process.env.EMAIL_USER}>`,
+        to: process.env.ADMIN_EMAIL,
+        subject: `⚠️ Low stock: ${doc.name} (${doc.stock} left)`,
+        html: getLowStockAlertTemplate(doc)
+      });
+
+      doc.lowStockAlertSent = true;
+      await doc.save();
+    } catch (error) {
+      console.error(`Failed to send low-stock alert for ${doc.name}:`, error.message);
+    }
+  }
 });
 
 module.exports = mongoose.model('Product', productSchema);

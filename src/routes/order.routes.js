@@ -7,6 +7,7 @@ const {
   updateOrderStatus,
   cancelOrder
 } = require('../controllers/order.controller');
+const { generateInvoice } = require('../controllers/invoice.controller');
 const { protect, admin } = require('../middleware/auth.middleware');
 const { validateOrder } = require('../utils/validators');
 
@@ -22,6 +23,7 @@ router.use(protect);
 router.post('/', validateOrder, createOrder);
 router.get('/my-orders', getMyOrders);
 router.get('/:id', getOrderById);
+router.get('/:id/invoice', generateInvoice);
 router.put('/:id/cancel', cancelOrder);
 
 // ✅ ADMIN ROUTE - Update order status

@@ -1,213 +1,3 @@
-// const mongoose = require('mongoose');
-
-// const orderItemSchema = new mongoose.Schema({
-//   product: {
-//     type: mongoose.Schema.Types.ObjectId,
-//     ref: 'Product',
-//     required: true
-//   },
-//   name: {
-//     type: String,
-//     required: true
-//   }, // Store product name in case product is deleted
-//   price: {
-//     type: Number,
-//     required: true,
-//     min: 0
-//   },
-//   quantity: {
-//     type: Number,
-//     required: true,
-//     min: 1
-//   },
-//   image: String // Store primary image URL
-// });
-
-// const orderSchema = new mongoose.Schema({
-//   user: {
-//     type: mongoose.Schema.Types.ObjectId,
-//     ref: 'User',
-//     required: true
-//   },
-//   orderNumber: {
-//     type: String,
-//     unique: true
-//   },
-//   items: {
-//     type: [orderItemSchema],
-//     validate: {
-//       validator: function(items) {
-//         return items && items.length > 0;
-//       },
-//       message: 'Order must have at least one item'
-//     }
-//   },
-//   shippingAddress: {
-//     name: {
-//       type: String,
-//       required: true
-//     },
-//     street: {
-//       type: String,
-//       required: true
-//     },
-//     city: {
-//       type: String,
-//       required: true
-//     },
-//     state: {
-//       type: String,
-//       required: true
-//     },
-//     zipCode: {
-//       type: String,
-//       required: true
-//     },
-//     country: {
-//       type: String,
-//       required: true,
-//       default: 'USA'
-//     },
-//     phone: {
-//       type: String,
-//       required: true
-//     }
-//   },
-//   paymentMethod: {
-//     type: String,
-//     required: true,
-//     enum: ['card', 'paypal', 'bank_transfer', 'cash_on_delivery']
-//   },
-//   paymentResult: {
-//     id: String,
-//     status: String,
-//     update_time: String,
-//     email_address: String
-//   },
-//   subtotal: {
-//     type: Number,
-//     required: true,
-//     min: 0,
-//     default: 0
-//   },
-//   shippingCost: {
-//     type: Number,
-//     required: true,
-//     min: 0,
-//     default: 0
-//   },
-//   tax: {
-//     type: Number,
-//     required: true,
-//     min: 0,
-//     default: 0
-//   },
-//   totalAmount: {
-//     type: Number,
-//     required: true,
-//     min: 0,
-//     default: 0
-//   },
-//   status: {
-//     type: String,
-//     enum: ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'],
-//     default: 'pending'
-//   },
-//   isPaid: {
-//     type: Boolean,
-//     default: false
-//   },
-//   paidAt: Date,
-//   isDelivered: {
-//     type: Boolean,
-//     default: false
-//   },
-//   deliveredAt: Date,
-//   trackingNumber: String,
-//   notes: String, // Admin notes or customer notes
-//   cancelledAt: Date,
-//   cancelReason: String,
-
-//   // ✅ NEW FIELDS FOR ENHANCED TRACKING
-//   carrier: {
-//     type: String,
-//     enum: ['DHL', 'FedEx', 'UPS', 'USPS', 'Local Courier', 'Other', '']
-//   },
-//   estimatedDelivery: Date,
-  
-//   // Status History for timeline
-//   statusHistory: [{
-//     status: {
-//       type: String,
-//       enum: ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled']
-//     },
-//     comment: String,
-//     updatedAt: {
-//       type: Date,
-//       default: Date.now
-//     }
-//   }],
-  
-//   // Shipping Updates with location tracking
-//   shippingUpdates: [{
-//     location: String,
-//     status: String,
-//     description: String,
-//     timestamp: {
-//       type: Date,
-//       default: Date.now
-//     }
-//   }]
-// }, {
-//   timestamps: true
-// });
-
-// // Generate order number before saving
-// orderSchema.pre('save', async function(next) {
-//   if (this.isNew && !this.orderNumber) {
-//     const count = await mongoose.model('Order').countDocuments();
-//     const timestamp = Date.now();
-//     const randomNum = Math.floor(Math.random() * 1000);
-//     this.orderNumber = `ORD-${timestamp}-${count + 1}-${randomNum}`;
-//   }
-  
-//   // ✅ Auto-generate tracking number when status changes to shipped
-//   if (this.isModified('status') && this.status === 'shipped' && !this.trackingNumber) {
-//     this.trackingNumber = 'TRK-' + Date.now() + Math.random().toString(36).substr(2, 9).toUpperCase();
-//   }
-  
-//   // ✅ Initialize statusHistory on creation
-//   if (this.isNew && (!this.statusHistory || this.statusHistory.length === 0)) {
-//     this.statusHistory = [{
-//       status: this.status,
-//       comment: 'Order placed successfully',
-//       updatedAt: Date.now()
-//     }];
-//   }
-  
-//   next();
-// });
-
-// // Virtual for order items total - WITH SAFETY CHECK ✅
-// orderSchema.virtual('itemsCount').get(function() {
-//   // Safety check to prevent crashes
-//   if (!this.items || !Array.isArray(this.items) || this.items.length === 0) {
-//     return 0;
-//   }
-//   return this.items.reduce((total, item) => total + item.quantity, 0);
-// });
-
-// // Ensure virtuals are included in JSON
-// orderSchema.set('toJSON', { virtuals: true });
-// orderSchema.set('toObject', { virtuals: true });
-
-// module.exports = mongoose.model('Order', orderSchema);
-
-
-
-
-
-
 const mongoose = require('mongoose');
 
 // Supported currencies with their symbols and Paystack support info
@@ -294,6 +84,8 @@ const orderSchema = new mongoose.Schema({
   subtotal:     { type: Number, required: true, min: 0, default: 0 },
   shippingCost: { type: Number, required: true, min: 0, default: 0 },
   tax:          { type: Number, required: true, min: 0, default: 0 },
+  couponCode:      { type: String, default: null },
+  discountAmount:  { type: Number, default: 0, min: 0 },
   totalAmount:  { type: Number, required: true, min: 0, default: 0 },
   status: {
     type: String,
@@ -337,6 +129,10 @@ const orderSchema = new mongoose.Schema({
 
 // Generate order number before saving
 orderSchema.pre('save', async function(next) {
+  // Mongoose sets isNew=false internally before post-save hooks run,
+  // so we snapshot it here for the post-save hook below to use.
+  this.wasNew = this.isNew;
+
   if (this.isNew && !this.orderNumber) {
     const count = await mongoose.model('Order').countDocuments();
     this.orderNumber = `ORD-${Date.now()}-${count + 1}-${Math.floor(Math.random() * 1000)}`;
@@ -348,6 +144,21 @@ orderSchema.pre('save', async function(next) {
     this.statusHistory = [{ status: this.status, comment: 'Order placed successfully', updatedAt: Date.now() }];
   }
   next();
+});
+
+// A real order landing means the cart was NOT abandoned — clear/mark the
+// saved snapshot so the recovery job doesn't email someone who already bought.
+// Decoupled from the order controller on purpose so this stays correct
+// regardless of which code path creates the order (checkout, admin, etc).
+orderSchema.post('save', async function(doc) {
+  if (doc.wasNew) {
+    try {
+      const AbandonedCart = mongoose.model('AbandonedCart');
+      await AbandonedCart.findOneAndDelete({ user: doc.user });
+    } catch (error) {
+      console.error('Failed to clear abandoned cart snapshot:', error.message);
+    }
+  }
 });
 
 orderSchema.virtual('itemsCount').get(function() {

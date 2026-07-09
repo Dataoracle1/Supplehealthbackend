@@ -1,4 +1,3 @@
-
 const getEmailHeader = () => `
   <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; text-align: center;">
     <h1 style="color: white; margin: 0; font-size: 28px;">🛒 Your E-Commerce Store</h1>
@@ -380,10 +379,146 @@ const getOrderStatusUpdateTemplate = (order, newStatus) => {
   `;
 };
 
+// 6. Abandoned Cart Recovery Email
+const getAbandonedCartTemplate = (userName, items) => {
+  const itemsHtml = items.map(item => `
+    <tr>
+      <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          ${item.image ? `<img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; object-fit: contain; border-radius: 6px; background: #f9fafb;" />` : ''}
+          <span>${item.name}</span>
+        </div>
+      </td>
+      <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">
+        ${item.quantity}
+      </td>
+      <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: bold;">
+        ₦${(item.price * item.quantity).toFixed(2)}
+      </td>
+    </tr>
+  `).join('');
+
+  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: white; }
+        .content { padding: 30px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .button {
+          display: inline-block;
+          padding: 12px 30px;
+          background: #10b981;
+          color: white;
+          text-decoration: none;
+          border-radius: 5px;
+          margin: 20px 0;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        ${getEmailHeader()}
+        <div class="content">
+          <h2 style="color: #10b981;">You left something behind! 🛒</h2>
+          <p>Hi ${userName},</p>
+          <p>We noticed you left some items in your cart. They're still waiting for you — but don't wait too long, stock is limited!</p>
+
+          <table>
+            <thead>
+              <tr style="background: #f3f4f6;">
+                <th style="padding: 10px; text-align: left;">Product</th>
+                <th style="padding: 10px; text-align: center;">Qty</th>
+                <th style="padding: 10px; text-align: right;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHtml}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="padding: 15px; text-align: right; font-weight: bold;">Cart Total:</td>
+                <td style="padding: 15px; text-align: right; font-weight: bold; font-size: 18px; color: #10b981;">
+                  ₦${total.toFixed(2)}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <a href="${process.env.FRONTEND_URL}/cart" class="button">Complete Your Purchase</a>
+
+          <p style="color: #9ca3af; font-size: 13px; margin-top: 20px;">
+            If you've already checked out, you can safely ignore this email.
+          </p>
+        </div>
+        ${getEmailFooter()}
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+// 7. Low Stock Alert (Admin)
+const getLowStockAlertTemplate = (product) => {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: white; }
+        .content { padding: 30px; }
+        .alert { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; }
+        .button {
+          display: inline-block;
+          padding: 12px 30px;
+          background: #10b981;
+          color: white;
+          text-decoration: none;
+          border-radius: 5px;
+          margin: 20px 0;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        ${getEmailHeader()}
+        <div class="content">
+          <div class="alert">
+            <h2 style="color: #92400e; margin: 0;">⚠️ Low Stock Alert</h2>
+          </div>
+
+          <p><strong>${product.name}</strong> is running low on stock.</p>
+
+          <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 5px 0;"><strong>SKU:</strong> ${product.sku}</p>
+            <p style="margin: 5px 0;"><strong>Current Stock:</strong> <span style="color: #dc2626; font-weight: bold; font-size: 18px;">${product.stock}</span> units</p>
+            <p style="margin: 5px 0;"><strong>Category:</strong> ${product.category}</p>
+          </div>
+
+          <p>Consider restocking soon to avoid disappointing customers with an "Out of Stock" listing.</p>
+
+          <a href="${process.env.FRONTEND_URL}/admin/products/edit/${product._id}" class="button">Update Stock</a>
+        </div>
+        ${getEmailFooter()}
+      </div>
+    </body>
+    </html>
+  `;
+};
+
 module.exports = {
   getWelcomeEmailTemplate,
   getOrderConfirmationTemplate,
   getAdminOrderNotificationTemplate,
   getPasswordResetTemplate,
   getOrderStatusUpdateTemplate,
+  getAbandonedCartTemplate,
+  getLowStockAlertTemplate,
 };
