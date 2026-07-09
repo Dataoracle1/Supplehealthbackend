@@ -1,14 +1,11 @@
 const User = require('../models/User');
 const Product = require('../models/Product');
 
-// @desc    Get the current user's wishlist (populated with product details)
-// @route   GET /api/wishlist
-// @access  Private
 const getWishlist = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate({
       path: 'wishlist',
-      match: { isActive: true } // don't show products that were deactivated
+      match: { isActive: true }
     });
 
     res.json({
@@ -22,9 +19,6 @@ const getWishlist = async (req, res) => {
   }
 };
 
-// @desc    Add a product to the wishlist
-// @route   POST /api/wishlist/:productId
-// @access  Private
 const addToWishlist = async (req, res) => {
   try {
     const { productId } = req.params;
@@ -50,9 +44,6 @@ const addToWishlist = async (req, res) => {
   }
 };
 
-// @desc    Remove a product from the wishlist
-// @route   DELETE /api/wishlist/:productId
-// @access  Private
 const removeFromWishlist = async (req, res) => {
   try {
     const { productId } = req.params;

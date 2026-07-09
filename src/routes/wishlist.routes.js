@@ -4,7 +4,7 @@ const { protect } = require('../middleware/auth.middleware');
 
 const router = express.Router();
 
-router.use(protect); // every wishlist route requires login
+router.use(protect);
 
 router.get('/', getWishlist);
 router.post('/:productId', addToWishlist);

@@ -5,7 +5,6 @@ const { protect } = require('../middleware/auth.middleware');
 
 const router = express.Router();
 
-// Prevent brute-forcing coupon codes: 20 attempts per 15 minutes
 const validateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
@@ -14,7 +13,6 @@ const validateLimiter = rateLimit({
   legacyHeaders: false
 });
 
-// Any logged-in user can validate a coupon at checkout
 router.post('/validate', protect, validateLimiter, validateCoupon);
 
 module.exports = router;

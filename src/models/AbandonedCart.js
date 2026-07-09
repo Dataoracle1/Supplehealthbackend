@@ -5,7 +5,7 @@ const abandonedCartSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
-    unique: true // one active saved cart per user
+    unique: true
   },
   email: {
     type: String,
@@ -23,13 +23,11 @@ const abandonedCartSchema = new mongoose.Schema({
     default: null
   },
   converted: {
-    // set true once the user checks out — kept briefly for reporting, then cleaned up
     type: Boolean,
     default: false
   }
 }, { timestamps: true });
 
-// Query pattern used by the recovery job: idle carts, not yet reminded, not converted
 abandonedCartSchema.index({ converted: 1, reminderSentAt: 1, updatedAt: 1 });
 
 module.exports = mongoose.model('AbandonedCart', abandonedCartSchema);

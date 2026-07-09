@@ -1,10 +1,5 @@
 const AbandonedCart = require('../models/AbandonedCart');
 
-// @desc    Save/update the current user's cart snapshot (for abandoned-cart recovery)
-// @route   POST /api/cart/save
-// @access  Private
-// Called by the frontend whenever the cart changes (debounced). If the cart
-// is empty, the saved snapshot is removed instead of stored.
 const saveCart = async (req, res) => {
   try {
     const { items } = req.body;
@@ -29,14 +24,13 @@ const saveCart = async (req, res) => {
         email: req.user.email,
         items: normalizedItems,
         converted: false,
-        reminderSentAt: null // reset — cart changed, give them a fresh window
+        reminderSentAt: null
       },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
     res.json({ success: true, message: 'Cart snapshot saved' });
   } catch (error) {
-    // Non-critical background feature — never let this break the shopping experience
     console.error('Save cart snapshot error:', error);
     res.status(200).json({ success: false, message: 'Cart snapshot not saved' });
   }

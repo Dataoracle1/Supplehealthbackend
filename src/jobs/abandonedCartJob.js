@@ -1,11 +1,10 @@
-// backend/jobs/abandonedCartJob.js
 const cron = require('node-cron');
 const AbandonedCart = require('../models/AbandonedCart');
 const transporter = require('../config/emailConfig');
 const { getAbandonedCartTemplate } = require('../utils/emailTemplates');
 
-const IDLE_HOURS_BEFORE_REMINDER = 2; // cart untouched for this long → eligible
-const CLEANUP_AFTER_DAYS = 14;        // stop tracking (converted or not) after this long
+const IDLE_HOURS_BEFORE_REMINDER = 2;
+const CLEANUP_AFTER_DAYS = 14;
 
 let cronJob = null;
 
@@ -17,7 +16,7 @@ async function processAbandonedCarts() {
     converted: false,
     reminderSentAt: null,
     updatedAt: { $lte: cutoff },
-    'items.0': { $exists: true } // has at least one item
+    'items.0': { $exists: true }
   });
 
   let sent = 0;
@@ -45,14 +44,12 @@ async function processAbandonedCarts() {
     console.log(`🛒 Abandoned cart job: ${sent} reminders sent, ${failed} failed`);
   }
 
-  // Housekeeping: remove old records so the collection doesn't grow forever
   const cleanupCutoff = new Date();
   cleanupCutoff.setDate(cleanupCutoff.getDate() - CLEANUP_AFTER_DAYS);
   await AbandonedCart.deleteMany({ updatedAt: { $lte: cleanupCutoff } });
 }
 
 function startAbandonedCartJob() {
-  // Runs every 30 minutes
   cronJob = cron.schedule('*/30 * * * *', async () => {
     try {
       await processAbandonedCarts();

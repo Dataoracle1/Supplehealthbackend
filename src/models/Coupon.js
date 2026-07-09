@@ -26,12 +26,10 @@ const couponSchema = new mongoose.Schema({
     min: 0
   },
   maxDiscountAmount: {
-    // caps a percentage discount so it can't exceed a fixed ceiling (e.g. "20% off, max ₦5000")
     type: Number,
     default: null
   },
   maxUses: {
-    // total redemptions across all customers; null = unlimited
     type: Number,
     default: null,
     min: 1
@@ -47,7 +45,7 @@ const couponSchema = new mongoose.Schema({
   },
   expiresAt: {
     type: Date,
-    default: null // null = never expires
+    default: null
   },
   isActive: {
     type: Boolean,
@@ -64,8 +62,6 @@ const couponSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-// Validate a coupon's usability. Does NOT check per-user usage — that check
-// requires looking at the Order collection and is done in the controller.
 couponSchema.methods.isUsable = function(orderTotal) {
   if (!this.isActive) return { valid: false, reason: 'This coupon is no longer active' };
   if (this.expiresAt && this.expiresAt < new Date()) return { valid: false, reason: 'This coupon has expired' };
@@ -85,7 +81,6 @@ couponSchema.methods.calculateDiscount = function(orderTotal) {
     discount = Math.min(discount, this.maxDiscountAmount);
   }
 
-  // Never discount more than the order is worth
   return Math.min(discount, orderTotal);
 };
 

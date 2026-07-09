@@ -1,9 +1,6 @@
 const Coupon = require('../models/Coupon');
 const Order = require('../models/Order');
 
-// @desc    Validate a coupon code and calculate the discount
-// @route   POST /api/coupons/validate
-// @access  Private (must be logged in to check per-user usage limits)
 const validateCoupon = async (req, res) => {
   try {
     const { code, orderTotal } = req.body;
@@ -32,7 +29,6 @@ const validateCoupon = async (req, res) => {
       });
     }
 
-    // Check per-user usage limit
     const userUsageCount = await Order.countDocuments({
       user: req.user._id,
       couponCode: coupon.code,
@@ -67,11 +63,6 @@ const validateCoupon = async (req, res) => {
   }
 };
 
-// ========== ADMIN CRUD ==========
-
-// @desc    Get all coupons
-// @route   GET /api/admin/coupons
-// @access  Private/Admin
 const getCoupons = async (req, res) => {
   try {
     const coupons = await Coupon.find().sort({ createdAt: -1 });
@@ -82,9 +73,6 @@ const getCoupons = async (req, res) => {
   }
 };
 
-// @desc    Create a coupon
-// @route   POST /api/admin/coupons
-// @access  Private/Admin
 const createCoupon = async (req, res) => {
   try {
     const coupon = await Coupon.create({ ...req.body, createdBy: req.user._id });
@@ -98,9 +86,6 @@ const createCoupon = async (req, res) => {
   }
 };
 
-// @desc    Update a coupon
-// @route   PUT /api/admin/coupons/:id
-// @access  Private/Admin
 const updateCoupon = async (req, res) => {
   try {
     const coupon = await Coupon.findByIdAndUpdate(req.params.id, req.body, {
@@ -119,9 +104,6 @@ const updateCoupon = async (req, res) => {
   }
 };
 
-// @desc    Delete a coupon
-// @route   DELETE /api/admin/coupons/:id
-// @access  Private/Admin
 const deleteCoupon = async (req, res) => {
   try {
     const coupon = await Coupon.findByIdAndDelete(req.params.id);
